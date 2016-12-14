@@ -210,30 +210,33 @@ if(UNIX)
   append_glob(SOURCES utils/posix/*.cpp)
 endif()
 
-find_package(PythonLibs QUIET)
-if(BUILD_PANGOLIN_GUI AND BUILD_PANGOLIN_VARS AND PYTHONLIBS_FOUND AND NOT _WIN_)
-  set(HAVE_PYTHON 1)
-  list(APPEND HEADERS
-    ${INCDIR}/console/ConsoleInterpreter.h
-    ${INCDIR}/console/ConsoleView.h
-    ${INCDIR}/python/PyInterpreter.h
-    ${INCDIR}/python/PyModulePangolin.h
-    ${INCDIR}/python/PyUniqueObj.h
-    ${INCDIR}/python/PyVar.h
-    ${INCDIR}/python/PyPangoIO.h
-  )
-  list(APPEND SOURCES
-    console/ConsoleView.cpp
-    python/PyInterpreter.cpp
-    python/PyModulePangolin.cpp
-  )
-  if(_GCC_)
-    set_source_files_properties(python/PyInterpreter.cpp    PROPERTIES COMPILE_FLAGS "-Wno-missing-field-initializers")
-    set_source_files_properties(python/PyModulePangolin.cpp PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing -Wno-missing-field-initializers")
-  endif()
-  list(APPEND INTERNAL_INC ${PYTHON_INCLUDE_DIR})
-  list(APPEND LINK_LIBS    ${PYTHON_LIBRARY})
-  message(STATUS "Python Found and Enabled")
+option(BUILD_PANGOLIN_PYTHON "Build support for Pangolin Python" ON)
+if(BUILD_PANGOLIN_PYTHON)
+    find_package(PythonLibs QUIET)
+    if(BUILD_PANGOLIN_GUI AND BUILD_PANGOLIN_VARS AND PYTHONLIBS_FOUND AND NOT _WIN_)
+      set(HAVE_PYTHON 1)
+      list(APPEND HEADERS
+        ${INCDIR}/console/ConsoleInterpreter.h
+        ${INCDIR}/console/ConsoleView.h
+        ${INCDIR}/python/PyInterpreter.h
+        ${INCDIR}/python/PyModulePangolin.h
+        ${INCDIR}/python/PyUniqueObj.h
+        ${INCDIR}/python/PyVar.h
+        ${INCDIR}/python/PyPangoIO.h
+      )
+      list(APPEND SOURCES
+        console/ConsoleView.cpp
+        python/PyInterpreter.cpp
+        python/PyModulePangolin.cpp
+      )
+      if(_GCC_)
+        set_source_files_properties(python/PyInterpreter.cpp    PROPERTIES COMPILE_FLAGS "-Wno-missing-field-initializers")
+        set_source_files_properties(python/PyModulePangolin.cpp PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing -Wno-missing-field-initializers")
+      endif()
+      list(APPEND INTERNAL_INC ${PYTHON_INCLUDE_DIR})
+      list(APPEND LINK_LIBS    ${PYTHON_LIBRARY})
+      message(STATUS "Python Found and Enabled")
+    endif()
 endif()
 
 option(BUILD_PANGOLIN_OCULUS "Build support for Oculus HUD" OFF)
