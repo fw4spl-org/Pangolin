@@ -25,8 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_GL_HPP
-#define PANGOLIN_GL_HPP
+#pragma once
 
 #include <pangolin/gl/gl.h>
 #include <pangolin/gl/glpixformat.h>
@@ -114,14 +113,18 @@ inline GlTexture::GlTexture(GLint width, GLint height, GLint internal_format, bo
     Reinitialise(width,height,internal_format,sampling_linear,border,glformat,gltype,data);
 }
 
-#ifdef CALLEE_HAS_RVALREF
 inline GlTexture::GlTexture(GlTexture&& tex)
-    : internal_format(tex.internal_format), tid(tex.tid)
 {
+    *this = std::move(tex);
+}
+inline void GlTexture::operator=(GlTexture&& tex)
+{
+    internal_format = tex.internal_format;
+    tid = tex.tid;
+
     tex.internal_format = 0;
     tex.tid = 0;
 }
-#endif
 
 inline bool GlTexture::IsValid() const
 {
@@ -219,7 +222,6 @@ inline void GlTexture::LoadFromFile(const std::string& filename, bool sampling_l
 {
     TypedImage image = LoadImage(filename);
     Load(image, sampling_linear);
-    FreeImage(image);
 }
 
 #ifndef HAVE_GLES
@@ -235,34 +237,42 @@ inline void GlTexture::Download(TypedImage& image) const
     switch (internal_format)
     {
     case GL_LUMINANCE8:
-        image.Alloc(width, height, VideoFormatFromString("GRAY8") );
+        image.Reinitialise(width, height, PixelFormatFromString("GRAY8") );
         Download(image.ptr, GL_LUMINANCE, GL_UNSIGNED_BYTE);
         break;
     case GL_LUMINANCE16:
-        image.Alloc(width, height, VideoFormatFromString("GRAY16LE") );
+        image.Reinitialise(width, height, PixelFormatFromString("GRAY16LE") );
         Download(image.ptr, GL_LUMINANCE, GL_UNSIGNED_SHORT);
         break;
     case GL_RGB8:
-        image.Alloc(width, height, VideoFormatFromString("RGB24"));
+        image.Reinitialise(width, height, PixelFormatFromString("RGB24"));
         Download(image.ptr, GL_RGB, GL_UNSIGNED_BYTE);
         break;
     case GL_RGBA8:
-        image.Alloc(width, height, VideoFormatFromString("RGBA32"));
+        image.Reinitialise(width, height, PixelFormatFromString("RGBA32"));
         Download(image.ptr, GL_RGBA, GL_UNSIGNED_BYTE);
+        break;
+    case GL_RGB16:
+        image.Reinitialise(width, height, PixelFormatFromString("RGB48"));
+        Download(image.ptr, GL_RGB, GL_UNSIGNED_SHORT);
+        break;
+    case GL_RGBA16:
+        image.Reinitialise(width, height, PixelFormatFromString("RGBA64"));
+        Download(image.ptr, GL_RGBA, GL_UNSIGNED_SHORT);
         break;
     case GL_LUMINANCE:
     case GL_LUMINANCE32F_ARB:
-        image.Alloc(width, height, VideoFormatFromString("GRAY32F"));
+        image.Reinitialise(width, height, PixelFormatFromString("GRAY32F"));
         Download(image.ptr, GL_LUMINANCE, GL_FLOAT);
         break;
     case GL_RGB:
     case GL_RGB32F:
-        image.Alloc(width, height, VideoFormatFromString("RGB96F"));
+        image.Reinitialise(width, height, PixelFormatFromString("RGB96F"));
         Download(image.ptr, GL_RGB, GL_FLOAT);
         break;
     case GL_RGBA:
     case GL_RGBA32F:
-        image.Alloc(width, height, VideoFormatFromString("RGBA128F"));
+        image.Reinitialise(width, height, PixelFormatFromString("RGBA128F"));
         Download(image.ptr, GL_RGBA, GL_FLOAT);
         break;
     default:
@@ -275,12 +285,25 @@ inline void GlTexture::Download(TypedImage& image) const
 
 }
 
+inline void GlTexture::CopyFrom(const GlTexture& tex)
+{
+    if(!tid || width != tex.width || height != tex.height ||
+       internal_format != tex.internal_format)
+    {
+        Reinitialise(tex.width, tex.height, tex.internal_format, true);
+    }
+
+    glCopyImageSubData(tex.tid, GL_TEXTURE_2D, 0, 0, 0, 0,
+                       tid, GL_TEXTURE_2D, 0, 0, 0, 0,
+                       width, height, 1);
+    CheckGlDieOnError();
+}
+
 inline void GlTexture::Save(const std::string& filename, bool top_line_first)
 {
     TypedImage image;
     Download(image);
     pangolin::SaveImage(image, filename, top_line_first);
-    image.Dealloc();
 }
 #endif // HAVE_GLES
 
@@ -486,13 +509,11 @@ inline GlRenderBuffer::~GlRenderBuffer()
 }
 #endif // HAVE_GLES
 
-#ifdef CALLEE_HAS_RVALREF
 inline GlRenderBuffer::GlRenderBuffer(GlRenderBuffer&& tex)
     : width(tex.width), height(tex.height), rbid(tex.rbid)
 {
     tex.rbid = tex.width = tex.height = 0;
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -593,14 +614,21 @@ inline GlBuffer::GlBuffer(GlBufferType buffer_type, GLuint num_elements, GLenum 
     Reinitialise(buffer_type, num_elements, datatype, count_per_element, gluse );
 }
 
-#ifdef CALLEE_HAS_RVALREF
 inline GlBuffer::GlBuffer(GlBuffer&& buffer)
-    : bo(buffer.bo), buffer_type(buffer.buffer_type), gluse(buffer.gluse), datatype(buffer.datatype),
-      num_elements(buffer.num_elements), count_per_element(buffer.count_per_element)
 {
+    *this = std::move(buffer);
+}
+
+inline void GlBuffer::operator=(GlBuffer&& buffer)
+{
+    bo = buffer.bo;
+    buffer_type = buffer.buffer_type;
+    gluse = buffer.gluse;
+    datatype = buffer.datatype;
+    num_elements = buffer.num_elements;
+    count_per_element = buffer.count_per_element;
     buffer.bo = 0;
 }
-#endif
 
 inline bool GlBuffer::IsValid() const
 {
@@ -627,6 +655,11 @@ inline void GlBuffer::Reinitialise(GlBufferType buffer_type, GLuint num_elements
     Bind();
     glBufferData(buffer_type, num_elements*GlDataTypeBytes(datatype)*count_per_element, 0, gluse);
     Unbind();
+}
+
+inline void GlBuffer::Reinitialise(GlBuffer const& other )
+{
+    Reinitialise(other.buffer_type, other.num_elements, other.datatype, other.count_per_element, other.gluse);
 }
 
 inline void GlBuffer::Resize(GLuint new_num_elements)
@@ -748,6 +781,3 @@ inline size_t GlSizeableBuffer::NextSize(size_t min_size) const
 }
 
 }
-
-
-#endif // PANGOLIN_GL_HPP

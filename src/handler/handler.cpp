@@ -192,7 +192,8 @@ void Handler3D::Mouse(View& display, MouseButton button, int x, int y, bool pres
     
     GLprecision T_nc[3*4];
     LieSetIdentity(T_nc);
-    
+
+    funcKeyState = 0;
     if( pressed )
     {
         GetPosNormal(display,x,y,p,Pw,Pc,n,last_z);
@@ -216,6 +217,8 @@ void Handler3D::Mouse(View& display, MouseButton button, int x, int y, bool pres
             OpenGlMatrix& spec = cam_state->GetModelViewMatrix();
             LieMul4x4bySE3<>(spec.m,T_nc,spec.m);
         }
+
+        funcKeyState = button_state;
     }
 }
 
@@ -224,10 +227,28 @@ void Handler3D::MouseMotion(View& display, int x, int y, int button_state)
     const GLprecision rf = 0.01;
     const float delta[2] = { (float)x - last_pos[0], (float)y - last_pos[1] };
     const float mag = delta[0]*delta[0] + delta[1]*delta[1];
-    
+
+    if((button_state & KeyModifierCtrl) && (button_state & KeyModifierShift))
+    {
+        GLprecision T_nc[3 * 4];
+        LieSetIdentity(T_nc);
+
+        GetPosNormal(display, x, y, p, Pw, Pc, n, last_z);
+        if(ValidWinDepth(p[2]))
+        {
+            last_z = p[2];
+            std::copy(Pc, Pc + 3, rot_center);
+        }
+
+        funcKeyState = button_state;
+    }
+    else
+    {
+        funcKeyState = 0;
+    }
+
     // TODO: convert delta to degrees based of fov
     // TODO: make transformation with respect to cam spec
-    
     if( mag < 50.0f*50.0f )
     {
         OpenGlMatrix& mv = cam_state->GetModelViewMatrix();
@@ -278,11 +299,13 @@ void Handler3D::MouseMotion(View& display, int x, int y, int button_state)
             rotation_changed = true;
         }else if( button_state == MouseButtonRight)
         {
-            // Try to correct for different coordinate conventions.
             GLprecision aboutx = -rf * delta[1];
-            GLprecision abouty =  rf * delta[0];
-            OpenGlMatrix& pm = cam_state->GetProjectionMatrix();
-            abouty *= -pm.m[2*4+3];
+            GLprecision abouty = -rf * delta[0];
+
+            // Try to correct for different coordinate conventions.
+            if(cam_state->GetProjectionMatrix().m[2*4+3] <= 0) {
+                abouty *= -1;
+            }
             
             if(enforce_up) {
                 // Special case if view direction is parallel to up vector

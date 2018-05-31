@@ -5,7 +5,7 @@
 namespace pangolin
 {
 
-inline Colour ParseJson(const json::value& val)
+inline Colour ParseJson(const picojson::value& val)
 {
     return Colour(
         val.contains("r") ? val["r"].get<double>() : 0.0,
@@ -15,9 +15,9 @@ inline Colour ParseJson(const json::value& val)
     );
 }
 
-inline json::value toJson(const Colour& colour)
+inline picojson::value toJson(const Colour& colour)
 {
-    json::value ret(json::object_type,true);
+    picojson::value ret(picojson::object_type,true);
     ret["r"] = colour.r;
     ret["g"] = colour.g;
     ret["b"] = colour.b;
@@ -33,8 +33,8 @@ inline std::ostream& operator<<(std::ostream& os, const Colour& colour)
 
 inline std::istream& operator>>(std::istream& is, Colour& colour)
 {
-    json::value val;
-    json::parse(val,is);
+    picojson::value val;
+    picojson::parse(val,is);
     colour = ParseJson(val);
     return is;
 }
@@ -61,13 +61,13 @@ ConsoleView::ConsoleView(ConsoleInterpreter* interpreter)
     line_colours[ConsoleLineTypeStdout]     = Colour(0.0f,0.0f,1.0f,1.0f);
     line_colours[ConsoleLineTypeStderr]     = Colour(1.0f,0.8f,0.8f,1.0f);
 
-    Var<Colour>::Attach("pango.console.colours.Background", background_colour);
-    Var<Colour>::Attach("pango.console.colours.Cmd",        line_colours[ConsoleLineTypeCmd]);
-    Var<Colour>::Attach("pango.console.colours.CmdOptions", line_colours[ConsoleLineTypeCmdOptions]);
-    Var<Colour>::Attach("pango.console.colours.Stdout",     line_colours[ConsoleLineTypeStdout]);
-    Var<Colour>::Attach("pango.console.colours.Stderr",     line_colours[ConsoleLineTypeStderr]);
-    Var<Colour>::Attach("pango.console.colours.Output",     line_colours[ConsoleLineTypeOutput]);
-    Var<Colour>::Attach("pango.console.colours.Help",       line_colours[ConsoleLineTypeHelp]);
+    Var<Colour>::Attach("pangolin.console.colours.Background", background_colour);
+    Var<Colour>::Attach("pangolin.console.colours.Cmd",        line_colours[ConsoleLineTypeCmd]);
+    Var<Colour>::Attach("pangolin.console.colours.CmdOptions", line_colours[ConsoleLineTypeCmdOptions]);
+    Var<Colour>::Attach("pangolin.console.colours.Stdout",     line_colours[ConsoleLineTypeStdout]);
+    Var<Colour>::Attach("pangolin.console.colours.Stderr",     line_colours[ConsoleLineTypeStderr]);
+    Var<Colour>::Attach("pangolin.console.colours.Output",     line_colours[ConsoleLineTypeOutput]);
+    Var<Colour>::Attach("pangolin.console.colours.Help",       line_colours[ConsoleLineTypeHelp]);
 
     Var<float>::Attach("pango.console.animation_speed", animation_speed);
 

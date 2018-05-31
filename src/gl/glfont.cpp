@@ -26,6 +26,7 @@
  */
 
 #define STB_TRUETYPE_IMPLEMENTATION
+#define STBTT_STATIC
 #include "stb_truetype.h"
 
 #include <pangolin/display/display_internal.h>
@@ -41,7 +42,7 @@
 #define MAX_TEXT_LENGTH 500
 
 // Embedded fonts:
-extern "C" const unsigned char AnonymousPro_ttf[];
+extern const unsigned char AnonymousPro_ttf[];
 
 namespace pangolin
 {
@@ -51,7 +52,7 @@ extern __thread PangolinGl* context;
 GlFont& GlFont::I()
 {
     if (!context->font) {
-        context->font.reset(new GlFont(AnonymousPro_ttf, 15));
+        context->font.reset(new GlFont(AnonymousPro_ttf, context->is_high_res ? 30 : 15));
     }
     return *context->font.get();
 }

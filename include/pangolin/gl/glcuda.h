@@ -25,8 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_CUDAGL_H
-#define PANGOLIN_CUDAGL_H
+#pragma once
 
 #include <algorithm>
 #include <cuda_runtime.h>
@@ -73,13 +72,13 @@ struct GlTextureCudaArray : GlTexture
     GlTextureCudaArray(int width, int height, GLint internal_format, bool sampling_linear = true, int border = 0, GLenum glformat = GL_RGBA, GLenum gltype = GL_UNSIGNED_BYTE, GLvoid* data = NULL);
     ~GlTextureCudaArray();
 
-    void Reinitialise(int width, int height, GLint internal_format, bool sampling_linear = true, int border = 0, GLenum glformat = GL_RGBA, GLenum gltype = GL_UNSIGNED_BYTE, GLvoid* data = NULL) PANGOLIN_OVERRIDE;
+    void Reinitialise(int width, int height, GLint internal_format, bool sampling_linear = true, int border = 0, GLenum glformat = GL_RGBA, GLenum gltype = GL_UNSIGNED_BYTE, GLvoid* data = NULL) override;
     cudaGraphicsResource* cuda_res;
 };
 
 struct CudaScopedMappedPtr
 {
-    CudaScopedMappedPtr(GlBufferCudaPtr& buffer);
+    CudaScopedMappedPtr(const GlBufferCudaPtr& buffer);
     ~CudaScopedMappedPtr();
     void* operator*();
     cudaGraphicsResource* res;
@@ -90,7 +89,7 @@ private:
 
 struct CudaScopedMappedArray
 {
-    CudaScopedMappedArray(GlTextureCudaArray& tex);
+    CudaScopedMappedArray(const GlTextureCudaArray& tex);
     ~CudaScopedMappedArray();
     cudaArray* operator*();
     cudaGraphicsResource* res;
@@ -195,7 +194,7 @@ inline void GlTextureCudaArray::Reinitialise(int width, int height, GLint intern
     }
 }
 
-inline CudaScopedMappedPtr::CudaScopedMappedPtr(GlBufferCudaPtr& buffer)
+inline CudaScopedMappedPtr::CudaScopedMappedPtr(const GlBufferCudaPtr& buffer)
     : res(buffer.cuda_res)
 {
     cudaGraphicsMapResources(1, &res, 0);
@@ -214,7 +213,7 @@ inline void* CudaScopedMappedPtr::operator*()
     return d_ptr;
 }
 
-inline CudaScopedMappedArray::CudaScopedMappedArray(GlTextureCudaArray& tex)
+inline CudaScopedMappedArray::CudaScopedMappedArray(const GlTextureCudaArray& tex)
     : res(tex.cuda_res)
 {
     cudaGraphicsMapResources(1, &res);
@@ -257,5 +256,3 @@ inline void swap(GlBufferCudaPtr& a, GlBufferCudaPtr& b)
 
 
 }
-
-#endif // PANGOLIN_CUDAGL_H

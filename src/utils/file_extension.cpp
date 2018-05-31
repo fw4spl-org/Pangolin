@@ -34,6 +34,91 @@
 namespace pangolin
 {
 
+std::string ImageFileTypeToName(ImageFileType t)
+{
+    switch(t)
+    {
+    case ImageFileTypePpm:
+        return "ppm";
+    case ImageFileTypeTga:
+        return "tga";
+    case ImageFileTypePng:
+        return "png";
+    case ImageFileTypeJpg:
+        return "jpg";
+    case ImageFileTypeTiff:
+        return "tiff";
+    case ImageFileTypeGif:
+        return "gif";
+    case ImageFileTypeExr:
+        return "exr";
+    case ImageFileTypePango:
+        return "pango";
+    case ImageFileTypePvn:
+        return "pvn";
+    case ImageFileTypeUnknown:
+    default:
+        return "unknown";
+    }
+}
+
+ImageFileType NameToImageFileType(const std::string& name)
+{
+    if ("ppm" == name)
+        return ImageFileTypePpm;
+    else if ("pgm" == name)
+        return ImageFileTypePpm;
+    else if ("tga" == name)
+        return ImageFileTypeTga;
+    else if ("png" == name)
+        return ImageFileTypePng;
+    else if ("jpg" == name)
+        return ImageFileTypeJpg;
+    else if ("jpeg" == name)
+        return ImageFileTypeJpg;
+    else if ("tiff" == name)
+        return ImageFileTypeTiff;
+    else if ("gif" == name)
+        return ImageFileTypeGif;
+    else if ("exr" == name)
+        return ImageFileTypeExr;
+    else if ("pango" == name)
+        return ImageFileTypePango;
+    else if ("pvn" == name)
+        return ImageFileTypePvn;
+    else if ("zstd" == name)
+        return ImageFileTypeZstd;
+
+    return ImageFileTypeUnknown;
+}
+
+ImageFileType FileTypeExtension(const std::string& ext)
+{
+    if( ext == ".png" ) {
+        return ImageFileTypePng;
+    } else if( ext == ".tga" || ext == ".targa") {
+        return ImageFileTypeTga;
+    } else if( ext == ".jpg" || ext == ".jpeg" ) {
+        return ImageFileTypeJpg;
+    } else if( ext == ".gif" ) {
+        return ImageFileTypeGif;
+    } else if( ext == ".tif" || ext == ".tiff" ) {
+        return ImageFileTypeTiff;
+    } else if( ext == ".exr"  ) {
+        return ImageFileTypeExr;
+    } else if( ext == ".ppm" || ext == ".pgm" || ext == ".pbm" || ext == ".pxm" || ext == ".pdm" ) {
+        return ImageFileTypePpm;
+    } else if( ext == ".pvn"  ) {
+        return ImageFileTypePvn;
+    } else if( ext == ".pango"  ) {
+        return ImageFileTypePango;
+    } else if( ext == ".zstd"  ) {
+        return ImageFileTypeZstd;
+    } else {
+        return ImageFileTypeUnknown;
+    }
+}
+
 std::string FileLowercaseExtention(const std::string& filename)
 {
     size_t pos = filename.find_last_of('.');
@@ -59,6 +144,7 @@ ImageFileType FileTypeMagic(const unsigned char data[], size_t bytes)
         const unsigned char magic_tiff2[] = "\x4D\x4D\x00\x2A";
         const unsigned char magic_exr[]   = "\x76\x2F\x31\x01";
         const unsigned char magic_pango[] = "PANGO";
+        const unsigned char magic_pango_zstd[] = "ZSTD";
 
         if( !strncmp((char*)data, (char*)magic_png, 8) ) {
             return ImageFileTypePng;
@@ -75,36 +161,13 @@ ImageFileType FileTypeMagic(const unsigned char data[], size_t bytes)
             return ImageFileTypeExr;
         }else if( !strncmp((char*)data, (char*)magic_pango,5) ) {
             return ImageFileTypePango;
+        }else if( !strncmp((char*)data, (char*)magic_pango_zstd,4) ) {
+            return ImageFileTypeZstd;
         }else if( data[0] == 'P' && '0' < data[1] && data[1] < '9') {
             return ImageFileTypePpm;
         }
     }
     return ImageFileTypeUnknown;
-}
-
-ImageFileType FileTypeExtension(const std::string& ext)
-{
-    if( ext == ".png" ) {
-        return ImageFileTypePng;
-    } else if( ext == ".tga" || ext == ".targa") {
-        return ImageFileTypeTga;
-    } else if( ext == ".jpg" || ext == ".jpeg" ) {
-        return ImageFileTypeJpg;
-    } else if( ext == ".gif" ) {
-        return ImageFileTypeGif;
-    } else if( ext == ".tif" || ext == ".tiff" ) {
-        return ImageFileTypeTiff;
-    } else if( ext == ".exr"  ) {
-        return ImageFileTypeExr;
-    } else if( ext == ".ppm" || ext == ".pgm" || ext == ".pbm" || ext == ".pxm" || ext == ".pdm" ) {
-        return ImageFileTypePpm;
-    } else if( ext == ".pvn"  ) {
-        return ImageFileTypePvn;
-    } else if( ext == ".pango"  ) {
-        return ImageFileTypePango;
-    } else {
-        return ImageFileTypeUnknown;
-    }
 }
 
 ImageFileType FileType(const std::string& filename)

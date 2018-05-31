@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 project("Pangolin")
 set(PANGOLIN_VERSION_MAJOR 0)
 set(PANGOLIN_VERSION_MINOR 5)
@@ -9,7 +9,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMakeMod
 # Platform configuration vars
 include(SetPlatformVars)
 
+SET(CPACK_GENERATOR "DEB")
+
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Steven Lovegrove")
+SET(CPACK_PACKAGE_VERSION_MAJOR ${PANGOLIN_VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${PANGOLIN_VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+include(CPack)
+
 option( BUILD_EXAMPLES "Build Examples" ON )
+option( BUILD_TESTS "Build Tests" ON )
 
 if(_WIN_)
     option( BUILD_SHARED_LIBS    "Build Shared Library" OFF)
@@ -84,6 +93,10 @@ add_custom_target(uninstall
 
 add_subdirectory("external")
 add_subdirectory("src")
+
+if(BUILD_TESTS)
+  add_subdirectory("test")
+endif()
 
 if(BUILD_EXAMPLES)
   set(Pangolin_DIR ${Pangolin_BINARY_DIR}/src)

@@ -25,11 +25,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_GL_H
-#define PANGOLIN_GL_H
+#pragma once
 
-#include <pangolin/gl/glinclude.h>
 #include <pangolin/display/viewport.h>
+#include <pangolin/gl/glinclude.h>
 #include <pangolin/image/image_io.h>
 
 #if defined(HAVE_EIGEN) && !defined(__CUDACC__) //prevent including Eigen in cuda files
@@ -40,9 +39,9 @@
 #include <Eigen/Core>
 #endif
 
-#include <math.h>
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
+#include <math.h>
 
 namespace pangolin
 {
@@ -57,10 +56,9 @@ public:
     //! internal_format normally one of GL_RGBA8, GL_LUMINANCE8, GL_INTENSITY16
     GlTexture(GLint width, GLint height, GLint internal_format = GL_RGBA8, bool sampling_linear = true, int border = 0, GLenum glformat = GL_RGBA, GLenum gltype = GL_UNSIGNED_BYTE, GLvoid* data = NULL  );
     
-#ifdef CALLEE_HAS_RVALREF
-    //! Move Constructor
+    //! Move Constructor / asignment
     GlTexture(GlTexture&& tex);
-#endif
+    void operator=(GlTexture&& tex);
     
     //! Default constructor represents 'no texture'
     GlTexture();
@@ -97,6 +95,8 @@ public:
 
     void Download(TypedImage& image) const;
 
+    void CopyFrom(const GlTexture& tex);
+
     void Save(const std::string& filename, bool top_line_first = true);
 
     void SetLinear();
@@ -125,10 +125,8 @@ struct PANGOLIN_EXPORT GlRenderBuffer
 
     void Reinitialise(GLint width, GLint height, GLint internal_format = GL_DEPTH_COMPONENT24);
 
-#ifdef CALLEE_HAS_RVALREF
     //! Move Constructor
     GlRenderBuffer(GlRenderBuffer&& tex);
-#endif
 
     ~GlRenderBuffer();
     
@@ -171,7 +169,8 @@ enum GlBufferType
     GlElementArrayBuffer = GL_ELEMENT_ARRAY_BUFFER,     // IBO's
 #ifndef HAVE_GLES
     GlPixelPackBuffer = GL_PIXEL_PACK_BUFFER,           // PBO's
-    GlPixelUnpackBuffer = GL_PIXEL_UNPACK_BUFFER
+    GlPixelUnpackBuffer = GL_PIXEL_UNPACK_BUFFER,
+    GlShaderStorageBuffer = GL_SHADER_STORAGE_BUFFER
 #endif
 };
 
@@ -181,10 +180,9 @@ struct PANGOLIN_EXPORT GlBuffer
     GlBuffer();
     GlBuffer(GlBufferType buffer_type, GLuint num_elements, GLenum datatype, GLuint count_per_element, GLenum gluse = GL_DYNAMIC_DRAW );
     
-#ifdef CALLEE_HAS_RVALREF
-    //! Move Constructor
+    //! Move Constructor / Assignment
     GlBuffer(GlBuffer&& tex);
-#endif  
+    void operator=(GlBuffer&& tex);
     
     ~GlBuffer();
 
@@ -193,6 +191,7 @@ struct PANGOLIN_EXPORT GlBuffer
     size_t SizeBytes() const;
     
     void Reinitialise(GlBufferType buffer_type, GLuint num_elements, GLenum datatype, GLuint count_per_element, GLenum gluse );
+    void Reinitialise(GlBuffer const& other );
     void Resize(GLuint num_elements);
     
     void Bind() const;
@@ -247,5 +246,3 @@ size_t GlDataTypeBytes(GLenum type);
 
 // Include implementation
 #include <pangolin/gl/gl.hpp>
-
-#endif // PANGOLIN_GL_H

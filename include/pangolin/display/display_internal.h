@@ -25,8 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_DISPLAY_INTERNAL_H
-#define PANGOLIN_DISPLAY_INTERNAL_H
+#pragma once
 
 #include <pangolin/platform.h>
 #include <pangolin/display/window.h>
@@ -77,7 +76,8 @@ struct PANGOLIN_EXPORT PangolinGl : public WindowInterface
     bool is_double_buffered;
     bool is_fullscreen;
     GLint windowed_size[2];
-    
+    bool is_high_res;
+
     // State relating to interactivity
     bool quit;
     int had_input;
@@ -98,27 +98,27 @@ struct PANGOLIN_EXPORT PangolinGl : public WindowInterface
 
     std::shared_ptr<GlFont> font;
 
-    virtual void ToggleFullscreen() PANGOLIN_OVERRIDE {
+    virtual void ToggleFullscreen() override {
         pango_print_warn("ToggleFullscreen: Not available with non-pangolin window.\n");
     }
 
-    virtual void ProcessEvents() PANGOLIN_OVERRIDE {
+    virtual void ProcessEvents() override {
         pango_print_warn("ProcessEvents: Not available with non-pangolin window.\n");
     }
 
-    virtual void SwapBuffers() PANGOLIN_OVERRIDE {
+    virtual void SwapBuffers() override {
         pango_print_warn("SwapBuffers: Not available with non-pangolin window.\n");
     }
 
-    virtual void MakeCurrent() PANGOLIN_OVERRIDE {
+    virtual void MakeCurrent() override {
         pango_print_warn("MakeCurrent: Not available with non-pangolin window.\n");
     }
 
-    virtual void Move(int /*x*/, int /*y*/) PANGOLIN_OVERRIDE {
+    virtual void Move(int /*x*/, int /*y*/) override {
         pango_print_warn("Move: Not available with non-pangolin window.\n");
     }
 
-    virtual void Resize(unsigned int /*w*/, unsigned int /*h*/) PANGOLIN_OVERRIDE {
+    virtual void Resize(unsigned int /*w*/, unsigned int /*h*/) override {
         pango_print_warn("Resize: Not available with non-pangolin window.\n");
     }
 
@@ -126,11 +126,9 @@ struct PANGOLIN_EXPORT PangolinGl : public WindowInterface
 };
 
 PangolinGl* GetCurrentContext();
-void AddNewContext(const std::string& name, std::shared_ptr<PangolinGl> newcontext);
+void RegisterNewContext(const std::string& name, std::shared_ptr<PangolinGl> newcontext);
 void DeleteContext(const std::string& name);
 PangolinGl *FindContext(const std::string& name);
 
 }
-
-#endif // PANGOLIN_DISPLAY_INTERNAL_H
 

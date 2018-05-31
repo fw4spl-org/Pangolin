@@ -1,5 +1,6 @@
 #include <librealsense/rs.hpp>
 #include <pangolin/video/drivers/realsense.h>
+#include <pangolin/factory/factory_registry.h>
 
 namespace pangolin {
 
@@ -11,12 +12,12 @@ RealSenseVideo::RealSenseVideo(ImageDim dim, int fps)
     devs_.push_back(ctx_->get_device(i));
 
     devs_[i]->enable_stream(rs::stream::depth, dim_.x, dim_.y, rs::format::z16, fps_);
-    StreamInfo streamD(VideoFormatFromString("GRAY16LE"), dim_.x, dim_.y, dim_.x*2, 0);
+    StreamInfo streamD(PixelFormatFromString("GRAY16LE"), dim_.x, dim_.y, dim_.x*2, 0);
     streams.push_back(streamD);
 
     sizeBytes += streamD.SizeBytes();
     devs_[i]->enable_stream(rs::stream::color, dim_.x, dim_.y, rs::format::rgb8, fps_);
-    StreamInfo streamRGB(VideoFormatFromString("RGB24"), dim_.x, dim_.y, dim_.x*3, (uint8_t*)0+sizeBytes);
+    StreamInfo streamRGB(PixelFormatFromString("RGB24"), dim_.x, dim_.y, dim_.x*3, (uint8_t*)0+sizeBytes);
     streams.push_back(streamRGB);
     sizeBytes += streamRGB.SizeBytes();
 
@@ -70,17 +71,30 @@ bool RealSenseVideo::GrabNewest(unsigned char* image, bool wait) {
   return GrabNext(image, wait);
 }
 
-int RealSenseVideo::GetCurrentFrameId() const {
+size_t RealSenseVideo::GetCurrentFrameId() const {
   return current_frame_index;
 }
 
-int RealSenseVideo::GetTotalFrames() const {
+size_t RealSenseVideo::GetTotalFrames() const {
   return total_frames;
 }
 
-int RealSenseVideo::Seek(int frameid) {
+size_t RealSenseVideo::Seek(size_t frameid) {
   // TODO
   return -1;
+}
+
+PANGOLIN_REGISTER_FACTORY(RealSenseVideo)
+{
+    struct RealSenseVideoFactory : public FactoryInterface<VideoInterface> {
+        std::unique_ptr<VideoInterface> Open(const Uri& uri) override {
+            const ImageDim dim = uri.Get<ImageDim>("size", ImageDim(640,480));
+            const unsigned int fps = uri.Get<unsigned int>("fps", 30);
+            return std::unique_ptr<VideoInterface>( new RealSenseVideo(dim, fps) );
+        }
+    };
+
+    FactoryRegistry<VideoInterface>::I().RegisterFactory(std::make_shared<RealSenseVideoFactory>(), 10, "realsense");
 }
 
 }

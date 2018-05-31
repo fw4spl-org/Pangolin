@@ -25,8 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_DISPLAY_H
-#define PANGOLIN_DISPLAY_H
+#pragma once
 
 #include <pangolin/platform.h>
 #include <pangolin/gl/glinclude.h>
@@ -36,6 +35,7 @@
 
 #include <functional>
 #include <string>
+#include <memory>
 
 /*! \file display.h
  * This file contains a number of global methods for creating and
@@ -89,9 +89,13 @@ namespace pangolin
   PANGOLIN_EXPORT
   void FinishFrame();
 
-  /// Request that the program exit.
+  /// Request that the window close.
   PANGOLIN_EXPORT
   void Quit();
+
+  /// Request that all windows close.
+  PANGOLIN_EXPORT
+  void QuitAll();
 
   /// Returns true if user has requested to close OpenGL window.
   PANGOLIN_EXPORT
@@ -148,8 +152,7 @@ namespace pangolin
     PANGOLIN_EXPORT
     void Resize(int width, int height);
 
-    /// Event based rendering entry point (from e.g.
-    /// glutMainLoop). Not currently supported.
+    /// Event based rendering entry point. Not currently supported.
     PANGOLIN_EXPORT
     void Display();
 
@@ -213,6 +216,4 @@ namespace pangolin
   };
 
 }
-
-#endif // PANGOLIN_DISPLAY_H
 

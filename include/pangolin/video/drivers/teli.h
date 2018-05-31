@@ -25,12 +25,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef PANGOLIN_VIDEO_TELI_H
-#define PANGOLIN_VIDEO_TELI_H
+#pragma once
 
 #include <pangolin/pangolin.h>
-#include <pangolin/video/video.h>
 #include <pangolin/utils/timer.h>
+#include <pangolin/video/video.h>
 
 #include <TeliCamApi.h>
 
@@ -43,7 +42,6 @@ class PANGOLIN_EXPORT TeliVideo : public VideoInterface, public VideoPropertiesI
 {
 public:
     TeliVideo(const Params &p);
-    TeliVideo(const Params &p, const ImageRoi& roi);
     ~TeliVideo();
 
     Params OpenCameraAndGetRemainingParameters(Params &params);
@@ -86,13 +84,16 @@ public:
     bool DropNFrames(uint32_t n);
 
     //! Access JSON properties of device
-    const json::value& DeviceProperties() const;
+    const picojson::value& DeviceProperties() const;
 
     //! Access JSON properties of most recently captured frame
-    const json::value& FrameProperties() const;
+    const picojson::value& FrameProperties() const;
+
+    void PopulateEstimatedCenterCaptureTime(pangolin::basetime host_reception_time);
 
 protected:
-    void Initialise(const ImageRoi& roi);
+    void Initialise();
+    void InitPangoDeviceProperties();
     void SetDeviceParams(const Params &p);
 
     std::vector<StreamInfo> streams;
@@ -106,10 +107,10 @@ protected:
 #ifdef _LINUX_
     Teli::SIGNAL_HANDLE hStrmCmpEvt;
 #endif
-    json::value device_properties;
-    json::value frame_properties;
+    double transfer_bandwidth_gbps;
+    int exposure_us;
+    picojson::value device_properties;
+    picojson::value frame_properties;
 };
 
 }
-
-#endif // PANGOLIN_VIDEO_TELI_H
